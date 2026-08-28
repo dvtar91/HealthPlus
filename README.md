@@ -19,6 +19,47 @@
 ## Текущий ИТ-ландшафт
 Существующие ИТ-системы и потоки данных представлены на диаграмме контекста С4 (Level 1): 
 <img width="1316" height="777" alt="Image (1)" src="https://github.com/user-attachments/assets/44110003-b182-4e9c-abbf-713f70b66d3a" />
+
+```mermaid
+C4Context
+    title System Context diagram
+
+    Boundary(PersonBoundary, "Пользователи", "Users"){
+        Person(customerPatient, "Пациент", "Записаться на прием")
+        Person(customerDoc, "Врач", "Управляет расписанием, просматривает анализы пациентов")
+        Person(customerLab, "Лаборант", "Просматривает результаты анализов в LIS")
+    }
+       
+    System_Boundary(SystemBoundary1, "", ""){
+        System(SystemWEB, "Веб-портал", "Текущий интерфейс для пациентов, врачей и администраторов")
+        System(SystemLIS, "LIS(Лаборатория)", "SOAP/FTP")
+    }
+
+    System_Boundary(SystemBoundary2, "", ""){
+        System(SystemNotification, "Уведомления", "RabbitMQ")
+        System(SystemPay, "Платежный шлюз", "Внешний REST API")
+        System(SystemSchedule, "Расписание", "REST API + PostgreSQL")
+        System(System1C, "1С: Полисы", "HTTP-шлюз")
+        System(SystemCRM, "CRM", "Микросервис на Java, REST")
+    }
+   
+    Rel(customerLab, SystemLIS, "Просматривает результаты анализов", "UI/API")
+    Rel(customerDoc, SystemWEB, "Управляет расписанием(слоты, отмены/переносы), просматривает анализы", "HTTPS")
+    Rel(customerPatient, SystemWEB, "Записывается", "HTTPS")
+    Rel(SystemLIS, SystemCRM, "Передача результатов анализов", "REST API(JSON)")
+
+    Rel(SystemWEB, SystemCRM, "Синхронизация данных", "REST")
+    Rel(SystemWEB, System1C, "Проверка полиса(синхронно)", "HTTP")
+    Rel(SystemWEB, SystemSchedule, "Запись/слоты(синхронно)", "REST")
+    Rel(SystemWEB, SystemPay, "Оплата(синхронно)", "REST")
+    Rel(SystemWEB, SystemNotification, "Отправить уведомление(асинхронно)", "AMPQ")
+    Rel(SystemNotification, customerPatient, "Push/SMS", "асинхронно")
+
+     
+ UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
+```
+
+
 ## Технологический стек и функции систем
 
 | ИТ-система | Функции	| Технологии |
